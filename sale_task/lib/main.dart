@@ -3,8 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart';
+
+import 'widgets/custom_button.dart';
+import 'widgets/product_size.dart';
+//import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
+//import 'package:path_provider/path_provider.dart';
+//import 'package:path/path.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,8 +16,6 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -21,18 +23,26 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
-      home: const  HomePage(initials: '',),
+      home: const HomePage(
+        initials: '',
+      ),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key,
-  required this.initials});
+  const HomePage({super.key, required this.initials});
   final String initials;
 
   @override
   State<HomePage> createState() => _HomePageState();
+}
+
+/////ColorItem///
+class ColorItem {
+  ColorItem(this.name, this.color);
+  final String name;
+  final Color color;
 }
 
 class _HomePageState extends State<HomePage> {
@@ -45,33 +55,46 @@ class _HomePageState extends State<HomePage> {
   Color? _shadeColor = Colors.blue[800];
 
   XFile? _image;
-  //  XFileBase(String? path);
+
+/////ColorItem///
+   final List<ColorItem> items = [
+    ColorItem("red", Colors.red),
+    ColorItem("pink", Colors.pink),
+    ColorItem("grey", Colors.grey),
+    ColorItem("green", Colors.green),
+    ColorItem("yellow", Colors.yellow),
+    ColorItem("amber", Colors.amber),
+    ColorItem("blue", Colors.blue),
+    ColorItem("black", Colors.black,),
+    ColorItem("white", Colors.white),
+    ColorItem("orange", Colors.deepOrange),
+  ];
+  late ColorItem currentChoice;
 
 
-  Future getImage() async{
-    try{
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if(image==null) return;
 
-  final  imageTemporary = image;
-  
+  Future getImage(ImageSource source) async {
+    try {
+      final image = await ImagePicker().pickImage(source: source);
+      if (image == null) return;
 
+      //final  imageTemporary = image;
 
-    setState(() {
-     // _image=image;
-      this._image=imageTemporary;
-    });
-    }on PlatformException catch(e){
+      setState(() {
+        _image = image;
+        //this._image=imageTemporary;
+      });
+    } on PlatformException catch (e) {
       print("Failed to pick image: $e");
     }
 
-  //   Future<File> saveFilePermanently(String imagePath)async{
-  //     final directory=await getApplicationDocumentsDirectory();
-  //     final name=basename(imagePath);
-  //     final image= File('${directory.path}/$name');
+    //   Future<File> saveFilePermanently(String imagePath)async{
+    //     final directory=await getApplicationDocumentsDirectory();
+    //     final name=basename(imagePath);
+    //     final image= File('${directory.path}/$name');
 
-  //     return File(directory,name);
-  // }
+    //     return File(directory,name);
+    // }
   }
 
   @override
@@ -79,13 +102,14 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     timeinput.text = "";
     dateController.text = '';
+    currentChoice = items[0];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Məhsul Sifarişi'),
+        title: const Text('Product Order'),
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -98,7 +122,7 @@ class _HomePageState extends State<HomePage> {
                 controller: dateController,
                 decoration: const InputDecoration(
                     icon: Icon(Icons.calendar_today),
-                    labelText: "Sifarişin tarixini daxil edin:"),
+                    labelText: "Enter product Order date:"),
                 readOnly: true,
                 onTap: () async {
                   DateTime? pickedDate = await showDatePicker(
@@ -124,7 +148,7 @@ class _HomePageState extends State<HomePage> {
                 controller: timeinput,
                 decoration: const InputDecoration(
                     icon: Icon(Icons.timer),
-                    labelText: "Sifarişin başlanğıc saatı:"),
+                    labelText: "Order start time :"),
                 readOnly: true,
                 onTap: () async {
                   TimeOfDay? pickedTime = await showTimePicker(
@@ -135,10 +159,8 @@ class _HomePageState extends State<HomePage> {
                     // print(pickedTime.format(context));
                     DateTime parsedTime = DateFormat.jm()
                         .parse(pickedTime.format(context).toString());
-                    //print(parsedTime);
                     String formattedTime =
                         DateFormat('HH:mm').format(parsedTime);
-                    //print(formattedTime);
 
                     setState(() {
                       timeinput.text = formattedTime;
@@ -155,7 +177,7 @@ class _HomePageState extends State<HomePage> {
                 controller: timeinput,
                 decoration: const InputDecoration(
                     icon: Icon(Icons.timer),
-                    labelText: "Sifarişin bitmə saatı:"),
+                    labelText: "Order end time:"),
                 readOnly: true,
                 onTap: () async {
                   TimeOfDay? pickedTime = await showTimePicker(
@@ -167,8 +189,9 @@ class _HomePageState extends State<HomePage> {
                     DateTime parsedTime = DateFormat.jm()
                         .parse(pickedTime.format(context).toString());
                     //print(parsedTime);
-                    String formattedTime =
-                        DateFormat('HH:mm',).format(parsedTime);
+                    String formattedTime = DateFormat(
+                      'HH:mm',
+                    ).format(parsedTime);
                     //print(formattedTime);
 
                     setState(() {
@@ -183,71 +206,89 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               width: 250,
               child: Column(
+                mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   const SizedBox(height: 22.0),
                   Text(
-                    "Məhsulun rəngini seçin:",
+                    "Choose Product Color:",
                     style: Theme.of(context).textTheme.headline6,
                     textAlign: TextAlign.start,
                   ),
                   const SizedBox(height: 12.0),
-                  ElevatedButton(
-                    onPressed: _openColorPicker,
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: _mainColor),
-                    child: const Text('Məhsulun Rəngi'),
+                  // ElevatedButton(
+                  //   onPressed: _openColorPicker,
+                  //   style:
+                  //       ElevatedButton.styleFrom(backgroundColor: _mainColor),
+                  //   child: const Text('Məhsulun Rəngi'),
+                  // ),
+            //       Icon(
+            //   Icons.face,
+            //   color: currentChoice.color,
+            //   size: 100.0,
+            // ),
+            // Image.network(
+            //   'https://images-na.ssl-images-amazon.com/images/I/318wxAI2mBL._SL500_._AC_SL500_.jpg'),
+            Container(
+              width: 150,
+              child: DropdownButton(
+                isExpanded: true,
+                style: Theme.of(context).textTheme.headline6,
+                value: currentChoice,
+                selectedItemBuilder: (BuildContext context) => items
+                 .map<Widget>((ColorItem item) => Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: Icon(Icons.square, color: item.color)
                   ),
+              Text(item.name),
+            ],
+          ))
+                 .toList(),
+              items: items
+      .map<DropdownMenuItem<ColorItem>>(
+          (ColorItem item) => DropdownMenuItem<ColorItem>(
+                value: item,
+                child: Container(
+                  alignment: Alignment.center,
+                  constraints:const  BoxConstraints(minHeight: 48.0),
+                  color: item.color,
+                  child: Text(item.name),
+                ),
+              ))
+      .toList(),
+  onChanged: (ColorItem? value) =>
+      setState(() => currentChoice = value!),
+              ),
+            ),
+                  
                 ],
+                
               ),
             ),
             SizedBox(
               width: 300,
               child: Column(
-                // mainAxisAlignment: MainAxisAlignment.start,
-                // crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 22.0),
                   Text(
-                    "Məhsulun ölçüləri:",
+                    "Product Sizes:",
                     //style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),
                     style: Theme.of(context).textTheme.headline6,
                   ),
                   Row(
-                    children: [
-                      Container(
-                        width: 100,
-                        margin: const EdgeInsets.all(20),
-                        child: TextField(
-                          decoration: const InputDecoration(labelText: "En:"),
-                          keyboardType: TextInputType.number,
-                          inputFormatters: <TextInputFormatter>[
-                            FilteringTextInputFormatter.allow(
-                              RegExp(r'[0-9]'),
-                            ),
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                        ),
+                    children: const [
+                      ProductSize(
+                        labelText: 'Wide:',
                       ),
-                      Container(
-                        width: 100,
-                        margin: const EdgeInsets.all(10),
-                        child: TextField(
-                          decoration:
-                              const InputDecoration(labelText: "Uzunluq:"),
-                          keyboardType: TextInputType.number,
-                          inputFormatters: <TextInputFormatter>[
-                            FilteringTextInputFormatter.allow(
-                              RegExp(r'[0-9]'),
-                            ),
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                        ),
-                      ),
+                      ProductSize(labelText: 'Lenght:'),
                     ],
                   ),
                   const SizedBox(height: 22.0),
                   Text(
-                    "Məhsulun şəkli:",
+                    "Product Image:",
                     //style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),
                     style: Theme.of(context).textTheme.headline6,
                   ),
@@ -263,12 +304,10 @@ class _HomePageState extends State<HomePage> {
                       ),
                       CustomButton(
                           icon: Icons.image_outlined,
-                          title: 'Qaleriya',
-                          onClick: getImage),
+                          title: 'Gallery',
+                          onClick:() =>getImage(ImageSource.gallery)),
                       CustomButton(
-                          icon: Icons.camera,
-                          title: 'Kamera',
-                          onClick: () {}),
+                          icon: Icons.camera, title: 'Camera', onClick: () =>getImage(ImageSource.camera)),
                     ],
                   ),
                 ],
@@ -278,26 +317,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
-
-  Widget CustomButton(
-      {required String title,
-      required IconData icon,
-      required void Function()? onClick
-      }) {
-    return Container(
-        width: 280,
-        child: ElevatedButton(
-            onPressed: onClick,
-            child: Row(
-              children: [
-                Icon(icon),
-                const SizedBox(
-                  width: 20,
-                ),
-                Text(title),
-              ],
-            )));
   }
 
   void _openDialog(String title, Widget content) {

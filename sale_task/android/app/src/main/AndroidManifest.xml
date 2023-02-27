@@ -1,9 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.sale_task">
    <application
-        android:label="sale_task"
+        android:label="orderProduct"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/order"
         android:requestLegacyExternalStorage="true">
         <activity
             android:name=".MainActivity"
